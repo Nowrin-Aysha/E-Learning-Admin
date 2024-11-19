@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Toast } from 'react-bootstrap'; 
+import { Modal, Button } from 'react-bootstrap';
+import { FaCheckCircle } from 'react-icons/fa'; 
+import axios from 'axios';
 
 const AddAdmin = () => {
   const [adminData, setAdminData] = useState({
@@ -12,7 +14,8 @@ const AddAdmin = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [showToast, setShowToast] = useState(false); 
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -28,7 +31,7 @@ const AddAdmin = () => {
     if (file && file.type.startsWith('image/')) {
       setAdminData({
         ...adminData,
-        photo: URL.createObjectURL(file),
+        photo: file,
       });
     } else {
       alert('Please upload a valid image file.');
@@ -37,55 +40,72 @@ const AddAdmin = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!adminData.name) newErrors.name = "Name is required.";
-    if (!adminData.email) newErrors.email = "Email is required.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminData.email)) newErrors.email = "Invalid email format.";
-    if (!adminData.phone) newErrors.phone = "Phone number is required.";
-    else if (!/^\d{10}$/.test(adminData.phone)) newErrors.phone = "Phone number must be 10 digits.";
-    if (!adminData.password) newErrors.password = "Password is required.";
-    else if (adminData.password.length < 6) newErrors.password = "Password must be at least 6 characters.";
+
+    if (!adminData.name) newErrors.name = "Please enter name.";
+    if (!adminData.email) {
+      newErrors.email = "Please enter email.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminData.email)) {
+      newErrors.email = "Please enter a valid email.";
+    }
+
+    if (!adminData.phone) {
+      newErrors.phone = "Please enter phone number.";
+    } else if (!/^\d{10}$/.test(adminData.phone)) {
+      newErrors.phone = "Phone number must be 10 digits.";
+    }
+
+    if (!adminData.password) {
+      newErrors.password = "Password is required.";
+    } else if (adminData.password.length < 6) {
+      newErrors.password = "Password should be at least 6 characters.";
+    }
+
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const validationErrors = validateForm();
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      
-      const formattedDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+      const formData = new FormData();
+      formData.append('name', adminData.name);
+      formData.append('email', adminData.email);
+      formData.append('phone', adminData.phone);
+      formData.append('password', adminData.password);
+      formData.append('photo', adminData.photo);
 
-      const newAdmin = {
-        id: Date.now(), 
-        name: adminData.name,
-        email: adminData.email,
-        phone: adminData.phone,
-        password: adminData.password,
-        photo: adminData.photo,
-        joinedDate: formattedDate,
-      };
+      try {
+        setLoading(true);
+        const response = await axios.post('http://localhost:5001/api/addadmin', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
 
-      
-      const admins = JSON.parse(localStorage.getItem('admins')) || [];
-      admins.push(newAdmin);
-      localStorage.setItem('admins', JSON.stringify(admins));
+        if (response.status === 200) {
+          setShowModal(true);
+          setAdminData({ name: '', email: '', phone: '', password: '', photo: null });
 
-      
-
-      
-      setAdminData({ name: '', email: '', phone: '', password: '', photo: null });
-
-      setTimeout(() => {
-        setShowToast(false); 
-        navigate('/admins'); 
-      }, 3000);
-    } else {
-      console.log('Validation errors:', validationErrors);
+          setTimeout(() => {
+            setShowModal(false);
+            navigate('/admins');
+          }, 3000);
+        }
+      } catch (error) {
+        console.error('Error adding admin:', error);
+        if (error.response) {
+          setErrors({ submit: error.response.data.message || "An error occurred while adding the admin." });
+        } else if (error.request) {
+          setErrors({ submit: "No response from server. Please try again later." });
+        } else {
+          setErrors({ submit: "Unexpected error. Please try again later." });
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -163,7 +183,13 @@ const AddAdmin = () => {
 
           {adminData.photo && (
             <div className="mb-3">
-              <img src={adminData.photo} alt="Admin Preview" className="img-fluid" />
+              <img src={URL.createObjectURL(adminData.photo)} alt="Admin Preview" className="img-fluid" />
+            </div>
+          )}
+
+          {errors.submit && (
+            <div className="alert alert-danger" role="alert">
+              {errors.submit}
             </div>
           )}
 
@@ -171,23 +197,43 @@ const AddAdmin = () => {
             type="submit"
             className="btn btn-primary w-100"
             style={{ backgroundColor: '#001f3d' }}
+            disabled={loading}
           >
-            Add Now
+            {loading ? 'Adding Admin...' : 'Add Now'}
           </button>
         </form>
       </div>
 
-      
-      <Toast 
-        show={showToast} 
-        onClose={() => setShowToast(false)} 
-        className="position-fixed bottom-0 end-0 m-3" 
-        bg="success"
-        delay={3000} 
-        autohide
+      {/* Success Modal */}
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        centered
+        size="lg"
+        animation={true}
       >
-        <Toast.Body className="text-white">Admin Added Successfully!</Toast.Body>
-      </Toast>
+        <Modal.Header closeButton>
+          <Modal.Title className="text-center text-success">
+            <FaCheckCircle size={50} />
+            <br />
+            Admin Added Successfully!
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center">
+          <h4>{adminData.name}</h4>
+          <p>The admin has been successfully added to the system.</p>
+          <p>Thank you for your submission!</p>
+        </Modal.Body>
+        <Modal.Footer className="text-center">
+          <Button
+            variant="success"
+            onClick={() => setShowModal(false)}
+            style={{ borderRadius: '50px', padding: '10px 20px' }}
+          >
+            <strong>Close</strong>
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

@@ -9,11 +9,11 @@ const adminSchema = new mongoose.Schema({
   },
   firstName: {
     type: String,
-    required: true,
+    // required: true,
   },
   phoneNumber: {
     type: String,
-    required: true,
+    // required: true,
     match: /^[0-9]{10}$/,
   },
   password: {
@@ -27,7 +27,7 @@ const adminSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
-    required: true,
+    // required: true,
     enum: ['male', 'female', 'other'],
   },
   isSuperAdmin: {

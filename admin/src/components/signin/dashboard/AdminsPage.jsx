@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Row, Col, Card, Navbar, Nav, Form } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 const AdminsPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -10,11 +10,19 @@ const AdminsPage = () => {
   const [editing, setEditing] = useState(false);
   const [editedAdmin, setEditedAdmin] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [reload, setReload] = useState(false);
 
   useEffect(() => {
-    const storedAdmins = JSON.parse(localStorage.getItem('admins')) || [];
-    setAdmins(storedAdmins);
-  }, []);
+    const token = localStorage.getItem("token");
+    const fetchAdmins = async () => {
+      const response = await axios.get('http://localhost:5001/api/getAdmins',{
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }});
+      setAdmins(response.data.data);
+    };
+    fetchAdmins();
+  }, [reload]);
 
   const handleAdminClick = (admin) => {
     setSelectedAdmin(admin);
@@ -32,6 +40,7 @@ const AdminsPage = () => {
   };
 
   const handleDeleteAdmin = (adminId) => {
+    const token = localStorage.getItem("token");
     Swal.fire({
       title: 'Are you sure?',
       text: "You won't be able to revert this!",
@@ -40,12 +49,18 @@ const AdminsPage = () => {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete it!',
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        const updatedAdmins = admins.filter((admin) => admin.id !== adminId);
-        localStorage.setItem('admins', JSON.stringify(updatedAdmins));
-        setAdmins(updatedAdmins);
-        Swal.fire('Deleted!', 'Your admin has been deleted.', 'success');
+        const response = await axios.post(`http://localhost:5001/api/deleteAdmin/${adminId}`,{},
+          {
+            headers: {
+              Authorization:` Bearer ${token}`,
+            }}
+        );
+        if (response.data.error === false) {
+          Swal.fire('Deleted!', 'Your admin has been deleted.', 'success');
+          setReload(!reload);
+        }
         handleCloseModal();
       }
     });
@@ -55,14 +70,30 @@ const AdminsPage = () => {
     setEditing(true);
   };
 
-  const handleSaveChanges = () => {
-    const updatedAdmins = admins.map((admin) =>
-      admin.id === editedAdmin.id ? editedAdmin : admin
-    );
-    localStorage.setItem('admins', JSON.stringify(updatedAdmins));
-    setAdmins(updatedAdmins);
-    Swal.fire('Success!', 'Admin details updated successfully.', 'success');
-    handleCloseModal();
+  const handleSaveChanges = async () => {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append('name', editedAdmin.name);
+    formData.append('email', editedAdmin.email);
+    formData.append('phone', editedAdmin.phone);
+    formData.append('password', editedAdmin.password);
+    formData.append('photo', editedAdmin.photo);
+
+    try {
+      const response = await axios.put(`http://localhost:5001/api/updateAdmin/${selectedAdmin._id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization:` Bearer ${token}`,
+        },
+      });
+      if (response.data.error === false) {
+        setReload(!reload);
+        Swal.fire('Success!', 'Admin details updated successfully.', 'success');
+        handleCloseModal();
+      }
+    } catch (error) {
+      Swal.fire('Error!', 'There was an error updating the admin details.', 'error');
+    }
   };
 
   const handleInputChange = (e) => {
@@ -81,7 +112,7 @@ const AdminsPage = () => {
         setImagePreview(reader.result);
         setEditedAdmin({
           ...editedAdmin,
-          photo: reader.result,
+          photo: file,
         });
       };
       reader.readAsDataURL(file);
@@ -102,11 +133,21 @@ const AdminsPage = () => {
       >
         <h3>Dashboard</h3>
         <Nav className="flex-column">
-          <Nav.Link href="/dashboard" style={{ color: '#fff' }}>Dashboard</Nav.Link>
-          <Nav.Link href="/courses" style={{ color: '#fff' }}>Courses</Nav.Link>
-          <Nav.Link href="/communication" style={{ color: '#fff' }}>Communication</Nav.Link>
-          <Nav.Link href="/revenue" style={{ color: '#fff' }}>Revenue</Nav.Link>
-          <Nav.Link href="/students" style={{ color: '#fff' }}>Student Details</Nav.Link>
+          <Nav.Link href="/dashboard" style={{ color: '#fff' }}>
+            Dashboard
+          </Nav.Link>
+          <Nav.Link href="/courses" style={{ color: '#fff' }}>
+            Courses
+          </Nav.Link>
+          <Nav.Link href="/communication" style={{ color: '#fff' }}>
+            Communication
+          </Nav.Link>
+          <Nav.Link href="/revenue" style={{ color: '#fff' }}>
+            Revenue
+          </Nav.Link>
+          <Nav.Link href="/students" style={{ color: '#fff' }}>
+            Student Details
+          </Nav.Link>
         </Nav>
       </div>
 
@@ -130,7 +171,7 @@ const AdminsPage = () => {
 
           <Row className="my-4">
             {admins.map((admin) => (
-              <Col key={admin.id} md={4} className="mb-4">
+              <Col key={admin._id} md={4} className="mb-4">
                 <Card>
                   <Card.Body className="text-center">
                     <div
@@ -144,7 +185,12 @@ const AdminsPage = () => {
                       }}
                       onClick={() => handleAdminClick(admin)}
                     >
-                      <img src={admin.photo || 'https://robohash.org/AdminDefault.png?size=200x200&set=set3'} alt={admin.name} className="img-fluid" />
+                      <img
+                        src={`http://localhost:5001/${admin.photo}`}
+                        alt={admin.name}
+                        className="img-fluid"
+                        style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                      />
                     </div>
                     <h6 className="mt-3">{admin.name}</h6>
                   </Card.Body>
@@ -161,7 +207,7 @@ const AdminsPage = () => {
               <Modal.Body>
                 <div className="text-center">
                   <img
-                    src={imagePreview || selectedAdmin.photo}
+                    src={ `http://localhost:5001/${selectedAdmin.photo}`|| imagePreview}
                     alt={selectedAdmin.name}
                     style={{
                       width: '120px',
@@ -202,7 +248,7 @@ const AdminsPage = () => {
                         onChange={handleInputChange}
                       />
                     </Form.Group>
-                    <Form.Group controlId="formPassword">
+                    {/* <Form.Group controlId="formPassword">
                       <Form.Label>Password</Form.Label>
                       <Form.Control
                         type="password"
@@ -210,7 +256,7 @@ const AdminsPage = () => {
                         value={editedAdmin.password}
                         onChange={handleInputChange}
                       />
-                    </Form.Group>
+                    </Form.Group> */}
                     <Form.Group controlId="formPhoto">
                       <Form.Label>Profile Photo</Form.Label>
                       <Form.Control type="file" onChange={handleFileChange} />
@@ -220,27 +266,19 @@ const AdminsPage = () => {
                   <>
                     <p><strong>Email:</strong> {selectedAdmin.email}</p>
                     <p><strong>Phone:</strong> {selectedAdmin.phone}</p>
-                    <p><strong>Password:</strong> {selectedAdmin.password}</p>
+                    {/* <p><strong>Password:</strong> {selectedAdmin.password}</p> */}
                     <p><strong>Joined Date:</strong> {new Date(selectedAdmin.joinedDate).toLocaleDateString()}</p>
                   </>
                 )}
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onClick={handleCloseModal}>
-                  Close
-                </Button>
+                <Button variant="secondary" onClick={handleCloseModal}>Close</Button>
                 {editing ? (
-                  <Button variant="primary" onClick={handleSaveChanges}>
-                    Save Changes
-                  </Button>
+                  <Button variant="primary" onClick={handleSaveChanges}>Save Changes</Button>
                 ) : (
-                  <Button variant="primary" onClick={handleEditAdmin}>
-                    Edit
-                  </Button>
+                  <Button variant="primary" onClick={handleEditAdmin}>Edit</Button>
                 )}
-                <Button variant="danger" onClick={() => handleDeleteAdmin(selectedAdmin.id)}>
-                  Delete
-                </Button>
+                <Button variant="danger" onClick={() => handleDeleteAdmin(selectedAdmin._id)}>Delete</Button>
               </Modal.Footer>
             </Modal>
           )}

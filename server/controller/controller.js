@@ -2,7 +2,9 @@ import adminModel from "../model/adminModel.js";
 import mentorModel from "../model/mentorModel.js";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import { response } from "express";
 import Jwt from "jsonwebtoken";
+import multer from 'multer';
 
 dotenv.config();
 
@@ -89,45 +91,46 @@ export async function login(req, res) {
 
 
 
+
+
 export async function addMentor(req, res) {
-  console.log("hellooo");
+ 
   
   try {
     const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]{10}$/;
 
-    const { name, email, phone, password} = req.body;
-    console.log(req.body);
-    console.log(req.file);
-    console.log(req.file.path);
-    
+    const { name, email, phone, password } = req.body;
 
-    
+    if (!name) return res.status(400).send({ error: "Please enter the name." });
+    if (!email) return res.status(400).send({ error: "Please enter email." });
+    if (!emailRegex.test(email)) return res.status(400).send({ error: "Please enter a valid email." });
+    if (!phone) return res.status(400).send({ error: "Please enter phone number." });
+    if (!phoneRegex.test(phone)) return res.status(400).send({ error: "Phone number must be 10 digits." });
+    if (!password) return res.status(400).send({ error: "Password is required." });
 
-    if (!email) return res.status(400).send({ error: "Please enter email" });
-    if (!emailRegex.test(email)) return res.status(400).send({ error: "Please enter a valid email" });
-    if (!name) return res.status(400).send({ error: "Please enter name" });
-    if (!phone) return res.status(400).send({ error: "Please enter phone number" });
-    if (!phoneRegex.test(phone)) return res.status(400).send({ error: "Phone number must be 10 digits" });
-    if (!password) return res.status(400).send({ error: "Password is required" });
+    const existingMentorByEmail = await mentorModel.findOne({ email });
+    if (existingMentorByEmail) return res.status(400).send({ error: "Email already in use. Please use a unique email." });
 
-    const existingMentor = await mentorModel.findOne({ email });
-    if (existingMentor) return res.status(400).send({ error: "Email already in use. Please use a unique email." });
+    const existingMentorByPhone = await mentorModel.findOne({ phone });
+    if (existingMentorByPhone) return res.status(400).send({ error: "Phone number already in use. Please use a unique phone number." });
 
     if (!specialCharRegex.test(password)) {
-      return res.status(400).send({ error: "Password should contain at least one special character" });
+      return res.status(400).send({ error: "Password should contain at least one special character." });
     }
-    if (password.length < 6) return res.status(400).send({ error: "Password should be at least 6 characters" });
+    if (password.length < 6) return res.status(400).send({ error: "Password should be at least 6 characters." });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    let filename=req.file.path;
+
+    const filename = req.file ? req.file.path : null;
+
     const newMentor = new mentorModel({
       name,
       email,
       phone,
       password: hashedPassword,
-      photo:filename,
+      photo: filename,
       joinedDate: new Date(),
     });
 
@@ -137,35 +140,23 @@ export async function addMentor(req, res) {
 
   } catch (error) {
     console.error("Error occurred during mentor registration:", error);
-    res.status(500).send({ error: error.message || "Internal Server Error" });
+    res.status(500).send({ error: true, msg: error.message || "Internal Server Error" });
   }
 }
 
 
-
 export async function getMentors(req, res) {
   try {
-    const userId = req.user.userid;
 
-    const user = await adminModel.findById(userId);
+    const data = await mentorModel.find();
+    console.log(data);
 
-    const response = {
-      userId: user._id,
-      ...user._doc,
-    };
-    if (user) {
-      res.status(200).json({
-        error: false,
-        message: "Mentor details retrieved successfully",
-        data: response,
-      });
-    } else {
-      res.status(404).json({
-        error: true,
-        message: "Mentor not found",
-        data: null,
-      });
-    }
+    res.status(200).json({
+          error: false,
+          message: "Mentor details retrieved successfully",
+          data: data,
+        });
+    
   } catch (error) {
     console.error("Error fetching mentor details:", error);
     res.status(500).json({
@@ -177,47 +168,134 @@ export async function getMentors(req, res) {
 }
 
 
+export async function deleteMentor(req,res){
+  try{
+    const id= req.params.id;
+    const result = await mentorModel.findOneAndDelete({_id:id});
+    res.status(200).send({error: false, message:"Mentor deleted successfully!"})
+
+
+  }catch(error){
+    console.error(error);
+    res.status(500).send({ error: error.message || "Internal Server Error" });
+
+  }
+
+
+}
+
+export async function updateMentor(req,res){
+
+  try{
+    console.log(req.body);
+    console.log(req.file);
+    console.log(req.params.id);
+    
+    let data= req.body;
+    if(req.file!=undefined){
+      data.photo=req.file.path;
+
+    }else{
+
+    }
+    
+    const id= req.params.id;
+    const result = await mentorModel.findByIdAndUpdate(id,data);
+    res.status(200).send({error: false, message:"Mentor updated successfully!"})
+
+
+  }catch(error){
+    console.error(error);
+    res.status(500).send({ error: error.message || "Internal Server Error" });
+
+  }
+
+
+}
+
+
 
 
 export async function addAdmin(req, res) {
+  console.log("Adding new admin...");
+  
   try {
     const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]{10}$/;
 
-    const { email, firstName, phoneNumber, password, role, gender, isSuperAdmin } = req.body;
+    const { name, email, phone, password } = req.body;
+    console.log(req.body);
+    console.log(req.file);
+    console.log(req.file?.path); 
 
     if (!email) return res.status(400).send({ error: "Please enter email" });
     if (!emailRegex.test(email)) return res.status(400).send({ error: "Please enter a valid email" });
-    if (!firstName) return res.status(400).send({ error: "Please enter first name" });
-    if (!phoneNumber) return res.status(400).send({ error: "Please enter phone number" });
-    if (!phoneRegex.test(phoneNumber)) return res.status(400).send({ error: "Phone number must be 10 digits" });
+    if (!name) return res.status(400).send({ error: "Please enter name" });
+    if (!phone) return res.status(400).send({ error: "Please enter phone number" });
+    if (!phoneRegex.test(phone)) return res.status(400).send({ error: "Phone number must be 10 digits" });
     if (!password) return res.status(400).send({ error: "Password is required" });
-    if (!gender) return res.status(400).send({ error: "Gender is required" });
 
-    const existEmail = await adminModel.findOne({ email });
-    if (existEmail) return res.status(400).send({ error: "Email already in use. Please use a unique email." });
+    const existingAdmin = await adminModel.findOne({ email });
+    if (existingAdmin) return res.status(400).send({ error: "Email already in use. Please use a unique email." });
 
     if (!specialCharRegex.test(password)) {
       return res.status(400).send({ error: "Password should contain at least one special character" });
     }
     if (password.length < 6) return res.status(400).send({ error: "Password should be at least 6 characters" });
 
-    const hashPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const filename = req.file?.path || '';  
 
-    const user = new adminModel({
+    const newAdmin = new adminModel({
+      name,
       email,
-      password: hashPassword,
-      firstName,
-      phoneNumber,
-      role,
-      gender,
-      isSuperAdmin: isSuperAdmin !== undefined ? isSuperAdmin : false,
+      phone,
+      password: hashedPassword,
+      photo: filename,
+      joinedDate: new Date(),
     });
 
-    await user.save();
+    await newAdmin.save();
 
-    return res.status(201).send({ error: false, msg: "Admin registered successfully" });
+    return res.status(200).send({ error: false, msg: "Admin registered successfully" });
+
+  } catch (error) {
+    console.error("Error occurred during admin registration:", error);
+    res.status(500).send({ error: error.message || "Internal Server Error" });
+  }
+}
+
+
+export async function getAdmins(req, res) {
+  try {
+    const data = await adminModel.find();
+    console.log(data);
+
+    res.status(200).json({
+      error: false,
+      message: "Admin details retrieved successfully",
+      data: data,
+    });
+
+  } catch (error) {
+    console.error("Error fetching admin details:", error);
+    res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+      data: null,
+    });
+  }
+}
+
+
+export async function deleteAdmin(req, res) {
+  try {
+    const id = req.params.id;
+    const result = await adminModel.findOneAndDelete({ _id: id });
+    if (!result) return res.status(404).send({ error: true, message: "Admin not found" });
+
+    res.status(200).send({ error: false, message: "Admin deleted successfully!" });
 
   } catch (error) {
     console.error(error);
@@ -226,12 +304,25 @@ export async function addAdmin(req, res) {
 }
 
 
-export async function getAdmins(req, res) {
+export async function updateAdmin(req, res) {
   try {
-    const admins = await adminModel.find();
-    return res.status(200).send({ error: false, admins });
+    console.log(req.body);
+    console.log(req.file);
+    console.log(req.params.id);
+    
+    let data = req.body;
+    if (req.file !== undefined) {
+      data.photo = req.file.path;
+    }
+
+    const id = req.params.id;
+    const result = await adminModel.findByIdAndUpdate(id, data, { new: true });
+    if (!result) return res.status(404).send({ error: true, message: "Admin not found" });
+
+    res.status(200).send({ error: false, message: "Admin updated successfully!" });
+
   } catch (error) {
-    console.error("Error fetching admins:", error);
-    res.status(500).send({ error: "Internal Server Error" });
+    console.error(error);
+    res.status(500).send({ error: error.message || "Internal Server Error" });
   }
 }
