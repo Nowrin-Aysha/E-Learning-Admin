@@ -7,10 +7,14 @@ const router = Router();
 
 router.route("/register").post(controller.register);
 router.route("/login").post(controller.login);
+router.route("/registerMentor").post(controller.registerMentor);
 router.route("/addMentor").post(upload.single("photo"),controller.addMentor);
 router.route("/getMentors").get(Auth,controller.getMentors);
+router.route("/getMentor/:id").get(controller.getMentor)
 router.route("/deleteMentor/:id").post(Auth,controller.deleteMentor); 
 router.route("/updateMentor/:id").post(Auth,upload.single("photo"),controller.updateMentor); 
+router.route("/updateMentorStatus/:id").post(controller.updateMentorStatus);
+router.route("/pendingMentorsCount").get(controller.pendingMentorsCount);
 router.route("/addAdmin").post(upload.single("photo"),controller.addAdmin);
 router.route("/getAdmins").get(Auth,controller.getAdmins);
 router.route("/deleteAdmin/:id").post(Auth,controller.deleteAdmin); 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Row, Col, Card, Navbar, Nav, Form } from 'react-bootstrap';
+import { Modal, Button, Table, Navbar, Nav, Form } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
@@ -15,10 +15,11 @@ const AdminsPage = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const fetchAdmins = async () => {
-      const response = await axios.get('http://localhost:5001/api/getAdmins',{
+      const response = await axios.get('http://localhost:5001/api/getAdmins', {
         headers: {
           Authorization: `Bearer ${token}`,
-        }});
+        }
+      });
       setAdmins(response.data.data);
     };
     fetchAdmins();
@@ -51,12 +52,11 @@ const AdminsPage = () => {
       confirmButtonText: 'Yes, delete it!',
     }).then(async (result) => {
       if (result.isConfirmed) {
-        const response = await axios.post(`http://localhost:5001/api/deleteAdmin/${adminId}`,{},
-          {
-            headers: {
-              Authorization:` Bearer ${token}`,
-            }}
-        );
+        const response = await axios.post(`http://localhost:5001/api/deleteAdmin/${adminId}`, {}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        });
         if (response.data.error === false) {
           Swal.fire('Deleted!', 'Your admin has been deleted.', 'success');
           setReload(!reload);
@@ -83,7 +83,7 @@ const AdminsPage = () => {
       const response = await axios.put(`http://localhost:5001/api/updateAdmin/${selectedAdmin._id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization:` Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       if (response.data.error === false) {
@@ -119,6 +119,11 @@ const AdminsPage = () => {
     }
   };
 
+  const formatDate = (date) => {
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    return new Date(date).toLocaleDateString('en-GB', options); // Format to day/month/year
+  };
+
   return (
     <div style={{ height: '100vh', width: '100vw' }}>
       <div
@@ -133,54 +138,47 @@ const AdminsPage = () => {
       >
         <h3>Dashboard</h3>
         <Nav className="flex-column">
-          <Nav.Link href="/dashboard" style={{ color: '#fff' }}>
-            Dashboard
-          </Nav.Link>
-          <Nav.Link href="/courses" style={{ color: '#fff' }}>
-            Courses
-          </Nav.Link>
-          <Nav.Link href="/communication" style={{ color: '#fff' }}>
-            Communication
-          </Nav.Link>
-          <Nav.Link href="/revenue" style={{ color: '#fff' }}>
-            Revenue
-          </Nav.Link>
-          <Nav.Link href="/students" style={{ color: '#fff' }}>
-            Student Details
-          </Nav.Link>
+          <Nav.Link href="/dashboard" style={{ color: '#fff' }}>Dashboard</Nav.Link>
+          <Nav.Link href="/courses" style={{ color: '#fff' }}>Courses</Nav.Link>
+          <Nav.Link href="/communication" style={{ color: '#fff' }}>Communication</Nav.Link>
+          <Nav.Link href="/revenue" style={{ color: '#fff' }}>Revenue</Nav.Link>
+          <Nav.Link href="/students" style={{ color: '#fff' }}>Student Details</Nav.Link>
         </Nav>
       </div>
 
       <div style={{ flex: 1, marginLeft: '250px' }}>
         <Navbar bg="dark" variant="dark" expand="lg" className="mb-4" style={{ backgroundColor: '#001f3d' }}>
           <Nav className="ml-auto">
-            <Nav.Link href="/add-admin" className="btn btn-primary mx-2" style={{ backgroundColor: '#001f3d' }}>
-              Add Admin
-            </Nav.Link>
-            <Nav.Link href="/add-mentor" className="btn btn-primary mx-2" style={{ backgroundColor: '#001f3d' }}>
-              Add Mentor
-            </Nav.Link>
-            <Nav.Link href="/add-course" className="btn btn-primary mx-2" style={{ backgroundColor: '#001f3d' }}>
-              Add Course
-            </Nav.Link>
+            <Nav.Link href="/add-admin" className="btn btn-primary mx-2" style={{ backgroundColor: '#001f3d' }}>Add Admin</Nav.Link>
+            <Nav.Link href="/add-mentor" className="btn btn-primary mx-2" style={{ backgroundColor: '#001f3d' }}>Add Mentor</Nav.Link>
+            <Nav.Link href="/add-course" className="btn btn-primary mx-2" style={{ backgroundColor: '#001f3d' }}>Add Course</Nav.Link>
           </Nav>
         </Navbar>
 
         <div style={{ padding: '20px' }}>
           <h2 className="text-center mb-4">Our Admins</h2>
 
-          <Row className="my-4">
-            {admins.map((admin) => (
-              <Col key={admin._id} md={4} className="mb-4">
-                <Card>
-                  <Card.Body className="text-center">
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>Profile</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Joined Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {admins.map((admin) => (
+                <tr key={admin._id}>
+                  <td>
                     <div
                       style={{
-                        width: '100px',
-                        height: '100px',
+                        width: '50px',
+                        height: '50px',
                         borderRadius: '50%',
                         overflow: 'hidden',
-                        margin: '0 auto',
                         cursor: 'pointer',
                       }}
                       onClick={() => handleAdminClick(admin)}
@@ -192,12 +190,30 @@ const AdminsPage = () => {
                         style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                       />
                     </div>
-                    <h6 className="mt-3">{admin.name}</h6>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                  </td>
+                  <td>{admin.name}</td>
+                  <td>{admin.email}</td>
+                  <td>{admin.phone}</td>
+                  <td>{formatDate(admin.joinedDate)}</td>
+                  <td>
+                    <Button
+                      variant="primary"
+                      onClick={() => handleAdminClick(admin)}
+                      style={{ marginRight: '10px' }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => handleDeleteAdmin(admin._id)}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
 
           {selectedAdmin && (
             <Modal show={showModal} onHide={handleCloseModal}>
@@ -207,7 +223,7 @@ const AdminsPage = () => {
               <Modal.Body>
                 <div className="text-center">
                   <img
-                    src={ `http://localhost:5001/${selectedAdmin.photo}`|| imagePreview}
+                    src={`http://localhost:5001/${selectedAdmin.photo}` || imagePreview}
                     alt={selectedAdmin.name}
                     style={{
                       width: '120px',
@@ -248,15 +264,6 @@ const AdminsPage = () => {
                         onChange={handleInputChange}
                       />
                     </Form.Group>
-                    {/* <Form.Group controlId="formPassword">
-                      <Form.Label>Password</Form.Label>
-                      <Form.Control
-                        type="password"
-                        name="password"
-                        value={editedAdmin.password}
-                        onChange={handleInputChange}
-                      />
-                    </Form.Group> */}
                     <Form.Group controlId="formPhoto">
                       <Form.Label>Profile Photo</Form.Label>
                       <Form.Control type="file" onChange={handleFileChange} />
@@ -266,8 +273,7 @@ const AdminsPage = () => {
                   <>
                     <p><strong>Email:</strong> {selectedAdmin.email}</p>
                     <p><strong>Phone:</strong> {selectedAdmin.phone}</p>
-                    {/* <p><strong>Password:</strong> {selectedAdmin.password}</p> */}
-                    <p><strong>Joined Date:</strong> {new Date(selectedAdmin.joinedDate).toLocaleDateString()}</p>
+                    <p><strong>Joined Date:</strong> {formatDate(selectedAdmin.joinedDate)}</p>
                   </>
                 )}
               </Modal.Body>

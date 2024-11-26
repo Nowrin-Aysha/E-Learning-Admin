@@ -23,11 +23,28 @@ export async function loginUser(credentials) {
     const response = await axios.post('/api/login', credentials);
 
     await localStorage.setItem("token", response.data.token);
+    await localStorage.setItem("data", JSON.stringify(response.data.data));
+    
     return response.data;
   } catch (error) {
     throw error.response.data || { error: 'Internal Server Error' };
   }
 };
+export async function registerMentor(credential) {
+  try {
+    const response = await axios.post("/api/registerMentor", credential);
+    return response.data;
+  } catch (error) {
+    console.log('Error during registration:', error);
+
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      return Promise.reject(error.response.data);
+    }
+
+    return Promise.reject({ error: 'Internal Server Error' });
+  }
+}
 
 export async function addMentor(mentorData) {
   console.log("Attempting to add mentor with the following data:", mentorData);

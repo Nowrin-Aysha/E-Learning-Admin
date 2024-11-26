@@ -16,13 +16,13 @@ export async function register(req, res) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]{10}$/;
     
-    const { email, firstName, phoneNumber, password, role, gender, isSuperAdmin } = req.body;
+    const { email, name, phone, password, role, gender, isSuperAdmin } = req.body;
 
     if (!email) return res.status(400).send({ error: "Please enter email" });
     if (!emailRegex.test(email)) return res.status(400).send({ error: "Please enter a valid email" });
-    if (!firstName) return res.status(400).send({ error: "Please enter first name" });
-    if (!phoneNumber) return res.status(400).send({ error: "Please enter phone number" });
-    if (!phoneRegex.test(phoneNumber)) return res.status(400).send({ error: "Phone number must be 10 digits" });
+    if (!name) return res.status(400).send({ error: "Please enter name" });
+    if (!phone) return res.status(400).send({ error: "Please enter phone number" });
+    if (!phoneRegex.test(phone)) return res.status(400).send({ error: "Phone number must be 10 digits" });
     if (!password) return res.status(400).send({ error: "Password is required" });
     if (!gender) return res.status(400).send({ error: "Gender is required" });
 
@@ -39,8 +39,8 @@ export async function register(req, res) {
     const user = new adminModel({
       email,
       password: hashPassword,
-      firstName,
-      phoneNumber,
+      name,
+      phone,
       role,
       gender,
       isSuperAdmin: isSuperAdmin !== undefined ? isSuperAdmin : false,
@@ -48,13 +48,60 @@ export async function register(req, res) {
 
     await user.save();
 
-    return res.status(201).send({ error: false, msg: "User registered successfully" });
+    return res.status(201).send({ error: false, msg: "Super Admin registered successfully" });
     
   } catch (error) {
     console.error(error);
     res.status(500).send({ error: error.message || "Internal Server Error" });
   }
 }
+
+
+export async function registerMentor(req, res) {
+  try {
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[0-9]{10}$/;
+    
+    const { email, name, phone, password } = req.body;
+
+    if (!email) return res.status(400).send({ error: "Please enter email" });
+    if (!emailRegex.test(email)) return res.status(400).send({ error: "Please enter a valid email" });
+    if (!name) return res.status(400).send({ error: "Please enter name" });
+    if (!phone) return res.status(400).send({ error: "Please enter phone number" });
+    if (!phoneRegex.test(phone)) return res.status(400).send({ error: "Phone number must be 10 digits" });
+    if (!password) return res.status(400).send({ error: "Password is required" });
+  
+
+    const existEmail = await adminModel.findOne({ email });
+    if (existEmail) return res.status(400).send({ error: "Email already in use. Please use a unique email." });
+
+    if (!specialCharRegex.test(password)) {
+      return res.status(400).send({ error: "Password should contain at least one special character" });
+    }
+    if (password.length < 6) return res.status(400).send({ error: "Password should be at least 6 characters" });
+
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    const user = new mentorModel({
+      email,
+      password: hashPassword,
+      name,
+      phone,
+      
+    });
+
+    await user.save();
+
+    return res.status(201).send({ error: false, msg: "Request sended successfully" });
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: error.message || "Internal Server Error" });
+  }
+}
+
+
 
 
 
@@ -67,6 +114,8 @@ export async function login(req, res) {
     if (!password) return res.status(400).send({ error: "password should not be empty" });
 
     const user = await adminModel.findOne({ email });
+    console.log(user);
+    
     if (!user) return res.status(404).send({ error: "email not found" });
 
     const passwordMatch = await bcrypt.compare(password, user.password);
@@ -82,6 +131,7 @@ export async function login(req, res) {
       msg: "Logged in successfully...",
       email: user.email,
       token,
+      data:user,
     });
   } catch (error) {
     console.error(error);
@@ -132,6 +182,7 @@ export async function addMentor(req, res) {
       password: hashedPassword,
       photo: filename,
       joinedDate: new Date(),
+      status:'1',
     });
 
     await newMentor.save();
@@ -159,6 +210,36 @@ export async function getMentors(req, res) {
     
   } catch (error) {
     console.error("Error fetching mentor details:", error);
+    res.status(500).json({
+      error: true,
+      message: "Internal Server Error",
+      data: null,
+    });
+  }
+}
+export async function getMentor(req, res) {
+  try {
+    const { mentorId } = req.params;
+
+    const mentor = await mentorModel.findById(mentorId);
+
+    if (!mentor) {
+      return res.status(404).json({
+        error: true,
+        message: "Mentor not found",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      error: false,
+      message: "Mentor details retrieved successfully",
+      data: mentor,
+    });
+
+  } catch (error) {
+    console.error("Error fetching mentor details:", error);
+
     res.status(500).json({
       error: true,
       message: "Internal Server Error",
@@ -269,7 +350,7 @@ export async function addAdmin(req, res) {
 
 export async function getAdmins(req, res) {
   try {
-    const data = await adminModel.find();
+    const data = await adminModel.find({isSuperAdmin:false});
     console.log(data);
 
     res.status(200).json({
@@ -326,3 +407,36 @@ export async function updateAdmin(req, res) {
     res.status(500).send({ error: error.message || "Internal Server Error" });
   }
 }
+
+
+
+export async function updateMentorStatus(req,res){
+  try {
+    let status = req.body.status;
+    let id = req.params.id;
+    const result = await mentorModel.findByIdAndUpdate(id, { status : status});
+    console.log(result);
+    
+
+    if (!result) return res.status(404).send({ error: true, message: " Mentor not found" });
+
+    res.status(200).send({ error: false, message: " Successfully approved!" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: error.message || "Internal Server Error" });
+  }
+}
+export async function pendingMentorsCount(req, res) {
+  try {
+    const pendingCount = await mentorModel.countDocuments({ status: '3' });
+    res.status(200).json({ pendingMentors: pendingCount });
+  } catch (error) {
+    console.error("Error fetching pending mentors count:", error);
+    res.status(500).json({ message: 'Server error, please try again later' });
+  }
+}
+
+    
+  
+

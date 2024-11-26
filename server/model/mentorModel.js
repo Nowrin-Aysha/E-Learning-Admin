@@ -24,6 +24,10 @@ const mentorSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  status:{
+    type:String,
+    default:"3",
+  },
   joinedDate: {
     type: Date,
     default: Date.now,

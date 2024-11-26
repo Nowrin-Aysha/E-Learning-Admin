@@ -7,11 +7,11 @@ const adminSchema = new mongoose.Schema({
     unique: true,
     match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
   },
-  firstName: {
+  name: {
     type: String,
     // required: true,
   },
-  phoneNumber: {
+  phone: {
     type: String,
     // required: true,
     match: /^[0-9]{10}$/,
@@ -33,6 +33,14 @@ const adminSchema = new mongoose.Schema({
   isSuperAdmin: {
     type: Boolean,
     default: false,
+  },
+  photo: {
+    type: String,
+    default: null,
+  },
+  joinedDate: {
+    type: Date,
+    default: Date.now,
   },
 }, { timestamps: true });
 

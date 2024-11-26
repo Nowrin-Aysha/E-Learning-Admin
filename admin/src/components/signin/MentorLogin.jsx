@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import FormElements from './FormElements';
 import toast, { Toaster } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';  
 import { loginUser } from '../../helper/helper';
-import { Link } from 'react-router-dom'; // Import Link component for navigation
 
 const Login = () => {
   const navigate = useNavigate();
@@ -82,14 +81,14 @@ const Login = () => {
         formType="login"
         handleInputChange={handleInputChange}
       />
-      {/* Additional Navigation Links */}
-      <div className="auth-links">
-        
+      
+      
+      <div className="mt-3">
         <p>
-          Are you a mentor? <Link to="/MentorLogin">Login as Mentor</Link>
+          <Link to="/mentorRegister" className="text-decoration-none">Register as Mentor</Link>
         </p>
         <p>
-          New to mentoring? <Link to="/MentorRegister">Register as Mentor</Link>
+          <Link to="/" className="text-decoration-none">Admin Login</Link>
         </p>
       </div>
     </>

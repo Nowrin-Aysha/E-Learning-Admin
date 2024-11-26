@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Row, Col, Card, Navbar, Nav, Form } from 'react-bootstrap';
+import { Modal, Button, Row, Col, Navbar, Nav, Form } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
@@ -12,6 +12,8 @@ const MentorsPage = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [reload, setReload] = useState(false);
   const [errors, setErrors] = useState({});
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -68,6 +70,58 @@ const MentorsPage = () => {
     });
   };
 
+  const handleApproveMentor = async (mentorId) => {
+    const token = localStorage.getItem("token");
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, approve it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const response = await axios.post(`http://localhost:5001/api/updateMentorStatus/${mentorId}`, {status:'1'}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        });
+        if (response.data.error === false) {
+          Swal.fire('Approved!', 'Mentor has been approved.', 'success');
+          setReload(!reload);
+        }
+        handleCloseModal();
+      }
+    });
+  };
+
+  const handleRejectMentor = async (mentorId) => {
+    const token = localStorage.getItem("token");
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, reject it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const response = await axios.post(`http://localhost:5001/api/updateMentorStatus/${mentorId}`, {status:'2'}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        });
+        if (response.data.error === false) {
+          Swal.fire('Rejected!', 'Mentor has been rejected.', 'success');
+          setReload(!reload);
+        }
+        handleCloseModal();
+      }
+    });
+  };
+
   const handleEditMentor = () => {
     setEditing(true);
   };
@@ -75,14 +129,12 @@ const MentorsPage = () => {
   const handleSaveChanges = async () => {
     const token = localStorage.getItem("token");
 
-    
     const validationErrors = validateMentor(editedMentor);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-   
     const isEmailUnique = !mentors.some(mentor => mentor.email === editedMentor.email && mentor._id !== selectedMentor._id);
     const isPhoneUnique = !mentors.some(mentor => mentor.phone === editedMentor.phone && mentor._id !== selectedMentor._id);
 
@@ -170,6 +222,14 @@ const MentorsPage = () => {
     return errors;
   };
 
+  // Filter mentors by name, email, and approval status
+  const filteredMentors = mentors.filter(mentor => {
+    const nameMatches = mentor.name.toLowerCase().includes(search.toLowerCase());
+    const emailMatches = mentor.email.toLowerCase().includes(search.toLowerCase());
+    const statusMatches = statusFilter ? mentor.status === statusFilter : true;
+    return (nameMatches || emailMatches) && statusMatches;
+  });
+
   return (
     <div style={{ height: '100vh', width: '100vw' }}>
       <div
@@ -182,7 +242,7 @@ const MentorsPage = () => {
           position: 'fixed',
         }}
       >
-        <h3>Dashboard</h3>
+        <h3>Wezlearn</h3>
         <Nav className="flex-column">
           <Nav.Link href="/dashboard" style={{ color: '#fff' }}>
             Dashboard
@@ -219,35 +279,106 @@ const MentorsPage = () => {
 
         <div style={{ padding: '20px' }}>
           <h2 className="text-center mb-4">Our Mentors</h2>
-          <Row className="my-4">
-            {mentors.map((mentor) => (
-              <Col key={mentor._id} md={4} className="mb-4">
-                <Card>
-                  <Card.Body className="text-center">
-                    <div
-                      style={{
-                        width: '100px',
-                        height: '100px',
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        margin: '0 auto',
-                        cursor: 'pointer',
-                      }}
-                      onClick={() => handleMentorClick(mentor)}
-                    >
-                      <img
-                        src={`http://localhost:5001/${mentor.photo}`}
-                        alt={mentor.name}
-                        className="img-fluid"
-                        style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                      />
-                    </div>
-                    <h6 className="mt-3">{mentor.name}</h6>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
+
+          {/* Search and Filter Section */}
+          <Row className="mb-4">
+            <Col md={6}>
+              <Form.Control
+                type="text"
+                placeholder="Search by name or email"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </Col>
+            <Col md={3}>
+              <Form.Control
+                as="select"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">All Statuses</option>
+                <option value="Approved">Approved</option>
+                <option value="Pending">Pending</option>
+              </Form.Control>
+            </Col>
           </Row>
+          <table className="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">Profile</th>
+      <th scope="col">Name</th>
+      <th scope="col">Email</th>
+      <th scope="col">Phone</th>
+      <th scope="col">Status</th>
+      <th scope="col">Joined Date</th>
+      <th scope="col">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredMentors.map((mentor) => (
+      <tr key={mentor._id}>
+        <td>
+          <div
+            style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleMentorClick(mentor)}
+          >
+            <img
+              src={`http://localhost:5001/${mentor.photo}`}
+              alt={mentor.name}
+              className="img-fluid"
+              style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+            />
+          </div>
+        </td>
+        <td>{mentor.name}</td>
+        <td>{mentor.email}</td>
+        <td>{mentor.phone}</td>
+        <td>
+          {mentor.status === '1' && (
+            <span style={{ color: 'green', fontWeight: 'bold' }}>Approved</span>
+          )}
+          {mentor.status === '2' && (
+            <span style={{ color: 'red', fontWeight: 'bold' }}>Rejected</span>
+          )}
+          {mentor.status === '3' && (
+            <span style={{ color: 'blue', fontWeight: 'bold' }}>Pending</span>
+          )}
+        </td>
+        <td>{new Date(mentor.joinedDate).toLocaleDateString('en-GB')}</td>
+        <td>
+          {mentor.status === '3' && (
+            <>
+              <Button variant="success" onClick={() => handleApproveMentor(mentor._id)} className="mx-1">
+                Approve
+              </Button>
+              <Button variant="danger" onClick={() => handleRejectMentor(mentor._id)} className="mx-1">
+                Reject
+              </Button>
+            </>
+          )}
+          {mentor.status !== '3' && (
+            <>
+              <Button variant="light" onClick={() => handleMentorClick(mentor)}>
+                Edit
+              </Button>
+              <Button variant="dark" onClick={() => handleDeleteMentor(mentor._id)} className="ml-2">
+                Delete
+              </Button>
+            </>
+          )}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+
 
           {selectedMentor && (
             <Modal show={showModal} onHide={handleCloseModal}>
@@ -318,7 +449,7 @@ const MentorsPage = () => {
                   <>
                     <p><strong>Email:</strong> {selectedMentor.email}</p>
                     <p><strong>Phone:</strong> {selectedMentor.phone}</p>
-                    <p><strong>Joined Date:</strong> {new Date(selectedMentor.joinedDate).toLocaleDateString()}</p>
+                    <p><strong>Joined Date:</strong> {new Date(selectedMentor.joinedDate).toLocaleDateString('en-GB')}</p>
                   </>
                 )}
               </Modal.Body>
