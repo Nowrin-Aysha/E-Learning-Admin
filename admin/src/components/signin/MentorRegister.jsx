@@ -35,8 +35,10 @@ const Register = () => {
       });
 
       setTimeout(() => {
-        navigate('/');
+        navigate('/mentorLogin');
       }, 1000);
+
+    
     } catch (error) {
       console.error('Error during registration:', error);
 

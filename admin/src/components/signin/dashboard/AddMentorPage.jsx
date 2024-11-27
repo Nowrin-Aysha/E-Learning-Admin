@@ -114,7 +114,7 @@ console.log(response);
         console.error('Error adding mentor:', error);
 
         if (error.response) {
-          setErrors({ submit: error.response.data.message || "Email already in use. Please use a unique email." });
+          setErrors({ submit: error.response.data.error || "Something went wrong!" });
         } else if (error.request) {
           setErrors({ submit: "No response from server. Please try again later." });
         } else {

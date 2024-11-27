@@ -73,8 +73,11 @@ export async function registerMentor(req, res) {
     if (!password) return res.status(400).send({ error: "Password is required" });
   
 
-    const existEmail = await adminModel.findOne({ email });
+    const existEmail = await mentorModel.findOne({ email });
     if (existEmail) return res.status(400).send({ error: "Email already in use. Please use a unique email." });
+
+    const existingMentorByPhone = await mentorModel.findOne({ phone });
+    if (existingMentorByPhone) return res.status(400).send({ error: "Phone number already in use. Please use a unique phone number." });
 
     if (!specialCharRegex.test(password)) {
       return res.status(400).send({ error: "Password should contain at least one special character" });
@@ -138,6 +141,41 @@ export async function login(req, res) {
     return res.status(500).send({ error: "Internal Server Error" });
   }
 }
+
+
+export async function loginMentor(req, res) {
+  try {
+    const { email, password } = req.body;
+
+    if (!email) return res.status(400).send({ error: "email should not be empty" });
+    if (!password) return res.status(400).send({ error: "password should not be empty" });
+
+    const user = await mentorModel.findOne({ email });
+    console.log(user);
+    
+    if (!user) return res.status(404).send({ error: "email not found" });
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) return res.status(400).send({ error: "Password does not match" });
+
+    const token = Jwt.sign(
+      { userid: user._id, email: user.email },
+      process.env.JWTS,
+      { expiresIn: "30d" }
+    );
+
+    return res.status(200).send({
+      msg: "Logged in successfully...",
+      email: user.email,
+      token,
+      data:user,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+}
+
 
 
 

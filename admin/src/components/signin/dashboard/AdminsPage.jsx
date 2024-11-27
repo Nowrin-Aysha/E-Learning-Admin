@@ -121,7 +121,7 @@ const AdminsPage = () => {
 
   const formatDate = (date) => {
     const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    return new Date(date).toLocaleDateString('en-GB', options); // Format to day/month/year
+    return new Date(date).toLocaleDateString('en-GB', options); 
   };
 
   return (

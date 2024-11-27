@@ -30,6 +30,20 @@ export async function loginUser(credentials) {
     throw error.response.data || { error: 'Internal Server Error' };
   }
 };
+
+export async function loginMentor(credentials) {
+  try {
+    const response = await axios.post('/api/loginMentor', credentials);
+
+    await localStorage.setItem("token", response.data.token);
+    await localStorage.setItem("data", JSON.stringify(response.data.data));
+    
+    return response.data;
+  } catch (error) {
+    throw error.response.data || { error: 'Internal Server Error' };
+  }
+};
+
 export async function registerMentor(credential) {
   try {
     const response = await axios.post("/api/registerMentor", credential);

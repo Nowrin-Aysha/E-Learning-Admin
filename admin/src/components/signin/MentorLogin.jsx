@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import FormElements from './FormElements';
 import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate, Link } from 'react-router-dom';  
-import { loginUser } from '../../helper/helper';
+import { loginMentor } from '../../helper/helper';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -48,7 +48,7 @@ const Login = () => {
     const loadingToastId = toast.loading(<b>Logging in...</b>);
 
     try {
-      const response = await loginUser(formValues);
+      const response = await loginMentor(formValues);
 
       const successMessage = response.msg || 'Login successful!';
 

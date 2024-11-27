@@ -28,6 +28,10 @@ const mentorSchema = new mongoose.Schema({
     type:String,
     default:"3",
   },
+  isMentor: {
+    type: Boolean,
+    default: true,
+  },
   joinedDate: {
     type: Date,
     default: Date.now,

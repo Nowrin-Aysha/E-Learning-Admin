@@ -8,6 +8,7 @@ const router = Router();
 router.route("/register").post(controller.register);
 router.route("/login").post(controller.login);
 router.route("/registerMentor").post(controller.registerMentor);
+router.route("/loginMentor").post(controller.loginMentor);
 router.route("/addMentor").post(upload.single("photo"),controller.addMentor);
 router.route("/getMentors").get(Auth,controller.getMentors);
 router.route("/getMentor/:id").get(controller.getMentor)
