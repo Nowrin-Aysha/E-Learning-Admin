@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Button } from 'react-bootstrap';
 import { FaCheckCircle } from 'react-icons/fa'; 
@@ -12,6 +12,23 @@ const AddAdmin = () => {
     password: '',
     photo: null,
   });
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const isSuperAdmin = JSON.parse(localStorage.getItem('isSuperAdmin')); 
+  
+  useEffect(() => {
+    if (token) {
+      if (role === 'admin' && isSuperAdmin === true) {
+        navigate('/add-admin');
+      } else {
+        navigate('/dashboard');
+      }
+    } else {
+      navigate('/');
+    }
+  }, [token, role, isSuperAdmin]); 
+  
+  
 
   const [errors, setErrors] = useState({});
   const [showModal, setShowModal] = useState(false);

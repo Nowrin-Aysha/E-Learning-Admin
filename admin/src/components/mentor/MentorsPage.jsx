@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Row, Col, Navbar, Nav, Form } from "react-bootstrap";
 import Swal from "sweetalert2";
 import axios from "axios";
+import SidebarNavbar from "../dashboard/SidebarNavbar";
+import { useNavigate } from "react-router-dom";
+import { FaBan, FaUnlockAlt } from "react-icons/fa";
 
 const MentorsPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -14,6 +17,11 @@ const MentorsPage = () => {
   const [errors, setErrors] = useState({});
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [selectedMentors, setSelectedMentors] = useState([]);
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -26,7 +34,19 @@ const MentorsPage = () => {
       setMentors(response.data.data);
     };
     fetchData();
-  }, [reload]);
+  }, [token, reload]);
+
+  useEffect(() => {
+    if (token) {
+      if (role === "admin") {
+        navigate("/mentors");
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      navigate("/");
+    }
+  }, [token, role]);
 
   const handleMentorClick = (mentor) => {
     setSelectedMentor(mentor);
@@ -248,11 +268,123 @@ const MentorsPage = () => {
       errors.phone = "Phone number must be 10 digits";
     }
 
-    if (!mentor.photo) {
-      errors.photo = "Profile photo is required";
-    }
-
     return errors;
+  };
+
+  const handleBlockMentor = async (mentorId) => {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `http://localhost:5001/api/blockMentor/${mentorId}`,
+      { isBlocked: true },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.data.error === false) {
+      setReload(!reload);
+      Swal.fire("Blocked!", "Mentor has been blocked.", "success");
+    }
+  };
+
+  const handleUnblockMentor = async (mentorId) => {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `http://localhost:5001/api/unblockMentor/${mentorId}`,
+      { isBlocked: false },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.data.error === false) {
+      setReload(!reload);
+      Swal.fire("Unblocked!", "Mentor has been unblocked.", "success");
+    }
+  };
+
+  const handleSelectMentor = (mentorId) => {
+    setSelectedMentors((prevSelectedMentors) => {
+      if (prevSelectedMentors.includes(mentorId)) {
+        return prevSelectedMentors.filter((id) => id !== mentorId);
+      } else {
+        return [...prevSelectedMentors, mentorId];
+      }
+    });
+  };
+
+  const handleDeleteSelectedMentors = async () => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        Swal.fire(
+          "Error",
+          "No authentication token found. Please log in.",
+          "error"
+        );
+        return;
+      }
+
+      if (!selectedMentors || selectedMentors.length === 0) {
+        Swal.fire("Error", "No mentors selected for deletion.", "error");
+        return;
+      }
+
+      try {
+        const response = await axios.post(
+          `http://localhost:5001/api/deleteMentors`,
+          { mentorIds: selectedMentors },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data.error === false) {
+          setSelectedMentors([]);
+          setReload((prev) => !prev);
+          Swal.fire(
+            "Deleted!",
+            "Selected mentors have been deleted.",
+            "success"
+          );
+        } else {
+          Swal.fire(
+            "Error",
+            "Something went wrong. Mentors not deleted.",
+            "error"
+          );
+        }
+      } catch (error) {
+        Swal.fire(
+          "Error",
+          "Failed to delete mentors. Please try again later.",
+          "error"
+        );
+      }
+    }
+  };
+
+  const handleSelectAllMentors = (isChecked) => {
+    if (isChecked) {
+      setSelectedMentors(filteredMentors.map((mentor) => mentor._id));
+    } else {
+      setSelectedMentors([]);
+    }
   };
 
   const filteredMentors = mentors.filter((mentor) => {
@@ -269,73 +401,12 @@ const MentorsPage = () => {
 
   return (
     <div style={{ height: "100vh", width: "100vw" }}>
-      <div
-        style={{
-          width: "250px",
-          backgroundColor: "#001f3d",
-          color: "#fff",
-          height: "100vh",
-          padding: "20px",
-          position: "fixed",
-        }}
-      >
-        <h3>Wezlearn</h3>
-        <Nav className="flex-column">
-          <Nav.Link href="/dashboard" style={{ color: "#fff" }}>
-            Dashboard
-          </Nav.Link>
-          <Nav.Link href="/courses" style={{ color: "#fff" }}>
-            Courses
-          </Nav.Link>
-          <Nav.Link href="/communication" style={{ color: "#fff" }}>
-            Communication
-          </Nav.Link>
-          <Nav.Link href="/revenue" style={{ color: "#fff" }}>
-            Revenue
-          </Nav.Link>
-          <Nav.Link href="/students" style={{ color: "#fff" }}>
-            Student Details
-          </Nav.Link>
-        </Nav>
-      </div>
+      <SidebarNavbar />
 
       <div style={{ flex: 1, marginLeft: "250px" }}>
-        <Navbar
-          bg="dark"
-          variant="dark"
-          expand="lg"
-          className="mb-4"
-          style={{ backgroundColor: "#001f3d" }}
-        >
-          <Nav className="ml-auto">
-            <Nav.Link
-              href="/add-mentor"
-              className="btn btn-primary mx-2"
-              style={{ backgroundColor: "#001f3d" }}
-            >
-              Add Mentor
-            </Nav.Link>
-            <Nav.Link
-              href="/add-admin"
-              className="btn btn-primary mx-2"
-              style={{ backgroundColor: "#001f3d" }}
-            >
-              Add Admin
-            </Nav.Link>
-            <Nav.Link
-              href="/add-course"
-              className="btn btn-primary mx-2"
-              style={{ backgroundColor: "#001f3d" }}
-            >
-              Add Course
-            </Nav.Link>
-          </Nav>
-        </Navbar>
-
         <div style={{ padding: "20px" }}>
           <h2 className="text-center mb-4">Our Mentors</h2>
 
-          {/* Search and Filter Section */}
           <Row className="mb-4">
             <Col md={6}>
               <Form.Control
@@ -359,9 +430,31 @@ const MentorsPage = () => {
             </Col>
           </Row>
 
+          {selectedMentors.length > 0 && (
+            <Button
+              variant="danger"
+              onClick={handleDeleteSelectedMentors}
+              style={{ marginBottom: "20px" }}
+            >
+              Delete Selected Mentors
+            </Button>
+          )}
+
           <table className="table table-striped">
             <thead>
               <tr>
+                <th scope="col">
+                  <input
+                    type="checkbox"
+                    onChange={(e) => handleSelectAllMentors(e.target.checked)}
+                    checked={
+                      filteredMentors.length > 0 &&
+                      filteredMentors.every((mentor) =>
+                        selectedMentors.includes(mentor._id)
+                      )
+                    }
+                  />
+                </th>
                 <th scope="col">Profile</th>
                 <th scope="col">Name</th>
                 <th scope="col">Email</th>
@@ -374,6 +467,13 @@ const MentorsPage = () => {
             <tbody>
               {filteredMentors.map((mentor) => (
                 <tr key={mentor._id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedMentors.includes(mentor._id)}
+                      onChange={() => handleSelectMentor(mentor._id)}
+                    />
+                  </td>
                   <td>
                     <div
                       style={{
@@ -413,8 +513,7 @@ const MentorsPage = () => {
                             .split(" ")
                             .map((n) => n[0])
                             .join("")
-                            .toUpperCase()}{" "}
-                          {/* Initials */}
+                            .toUpperCase()}
                         </span>
                       )}
                     </div>
@@ -442,6 +541,7 @@ const MentorsPage = () => {
                   <td>
                     {new Date(mentor.joinedDate).toLocaleDateString("en-GB")}
                   </td>
+
                   <td>
                     {mentor.status === "3" && (
                       <>
@@ -461,7 +561,7 @@ const MentorsPage = () => {
                         </Button>
                       </>
                     )}
-                    {mentor.status !== "3" && (
+                    {mentor.status !== "3" && mentor.status !== "2" && (
                       <>
                         <Button
                           variant="light"
@@ -478,6 +578,53 @@ const MentorsPage = () => {
                         </Button>
                       </>
                     )}
+
+                    {mentor.status === "2" && (
+                      <>
+                        <Button
+                          variant="light"
+                          onClick={() => handleApproveMentor(mentor._id)}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          variant="dark"
+                          onClick={() => handleDeleteMentor(mentor._id)}
+                          className="ml-2"
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
+
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: "10px",
+                        alignItems: "center",
+                      }}
+                    >
+                      {mentor.isBlocked ? (
+                        <FaUnlockAlt
+                          style={{
+                            cursor: "pointer",
+                            fontSize: "20px",
+                            color: "green",
+                          }}
+                          onClick={() => handleUnblockMentor(mentor._id)}
+                        />
+                      ) : (
+                        <FaBan
+                          style={{
+                            cursor: "pointer",
+                            fontSize: "20px",
+                            color: "red",
+                          }}
+                          onClick={() => handleBlockMentor(mentor._id)}
+                        />
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -544,7 +691,7 @@ const MentorsPage = () => {
                 {editing ? (
                   <Form>
                     <Form.Group controlId="formName">
-                      w<Form.Label>Name</Form.Label>
+                      <Form.Label>Name</Form.Label>
                       <Form.Control
                         type="text"
                         name="name"

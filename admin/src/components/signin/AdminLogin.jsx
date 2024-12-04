@@ -60,6 +60,8 @@ const Login = () => {
       toast.success(<b>{successMessage}</b>, { duration: 2000 });
 
       localStorage.setItem("token", response.token);
+      localStorage.setItem('role',response.role)
+      localStorage.setItem('isSuperAdmin',response.isSuperAdmin)
       navigate('/dashboard');
     } catch (error) {
       console.error('Error during login:', error);

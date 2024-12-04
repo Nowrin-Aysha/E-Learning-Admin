@@ -21,6 +21,7 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+// isSuperAdmin=localStorage.getItem('isSuperAdmin'&&'isSuperAdmin')
 
 const Dashboard = () => {
   const [superAdmin, setSuperAdmin] = useState(false);
@@ -29,11 +30,19 @@ const Dashboard = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [user, setUser] = useState({});
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const token = localStorage.getItem("token");
+useEffect(() => {
+if(token){
+  navigate('/dashboard')
+}
+else{
+  navigate('/')
+}
+}, [])
 
   useEffect(() => {
     let data = JSON.parse(localStorage.getItem("data"));
-    console.log("buhahahaaahaaaa!!!");
-    console.log(data);
+if(data){
     setSuperAdmin(data.isSuperAdmin);
     setMentor(data.isMentor);
 
@@ -43,7 +52,7 @@ const Dashboard = () => {
       role: data.role,
       profilePicture: data.profilePicture,
     });
-
+  }
     const token = localStorage.getItem("token");
     const fetchData = async () => {
       const response = await axios.get(
@@ -158,7 +167,7 @@ const Dashboard = () => {
               <li className="nav-item">
                 <Link className="nav-link text-white" to="/admins">
                   <div className="sidebar-option">
-                    <i className="bi bi-person-fill"></i> Our Admins
+                    <i className="bi bi-person-fill"></i> Admin Management
                   </div>
                 </Link>
               </li>
@@ -168,7 +177,7 @@ const Dashboard = () => {
               <li className="nav-item">
                 <Link className="nav-link text-white" to="/mentors">
                   <div className="sidebar-option">
-                    <i className="bi bi-person-fill"></i> Our Mentors
+                    <i className="bi bi-person-fill"></i> Mentor Management
                   </div>
                 </Link>
               </li>

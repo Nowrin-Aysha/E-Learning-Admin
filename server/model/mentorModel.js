@@ -32,6 +32,10 @@ const mentorSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  isBlocked:{
+    type: Boolean,
+    default: false,
+  },
   joinedDate: {
     type: Date,
     default: Date.now,

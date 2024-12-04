@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { FaCheckCircle } from 'react-icons/fa';
+
 
 
 const AddMentor = () => {
@@ -13,6 +14,22 @@ const AddMentor = () => {
     password: '',
     photo: null,
   });
+
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+
+  
+  useEffect(() => {
+    if (token) {
+      if (role === 'admin') {
+        navigate('/add-mentor');
+      } else {
+        navigate('/dashboard');
+      }
+    } else {
+      navigate('/');
+    }
+  }, [token, role]); 
 
   const [errors, setErrors] = useState({});
   const [showModal, setShowModal] = useState(false);

@@ -38,6 +38,10 @@ const adminSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  isBlocked:{
+    type: Boolean,
+    default: false,
+  },
   joinedDate: {
     type: Date,
     default: Date.now,

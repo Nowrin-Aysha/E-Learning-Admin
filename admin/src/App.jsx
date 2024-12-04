@@ -1,18 +1,23 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import Dashboard from "./components/signin/dashboard/Dashboard";
-import AddAdminPage from "./components/signin/dashboard/AddAdminPage";
-import AddMentorPage from "./components/signin/dashboard/AddMentorPage";
-import AddCoursePage from "./components/signin/dashboard/AddCoursePage";
-import MentorsPage from "./components/signin/dashboard/MentorsPage";
-import MentorDetailsPage from "./components/signin/dashboard/mentorDetails";
-import AdminsPage from "./components/signin/dashboard/AdminsPage";
+import Dashboard from "./components/dashboard/Dashboard";
+import AddAdminPage from "./components/admin/AddAdminPage";
+import AddMentorPage from "./components/mentor/AddMentorPage";
+import MentorsPage from "./components/mentor/MentorsPage";
+import MentorDetailsPage from "./components/mentor/mentorDetails";
+import AdminsPage from "./components/admin/AdminsPage";
 import Login from "./components/signin/AdminLogin";
 import Register from "./components/signin/MentorRegister";
 import MentorLogin from "./components/signin/MentorLogin";
 import MentorRegister from "./components/signin/MentorRegister";
-import Profile from "./components/signin/dashboard/profile";
+import Profile from "./components/dashboard/profile";
+import Courses from "./components/courses/courses";
+import CourseCurriculum from "./components/courses/course-curriculum";
+import CourseLanding from "./components/courses/course-landing";
+import CourseSettings from "./components/courses/course-settings";
+import AddNewCoursePage from "./components/courses/add-new-course";
+
 
 
 function App() {
@@ -51,8 +56,24 @@ function App() {
         element: <AddMentorPage />,
       },
       {
-        path: "/add-course",
-        element: <AddCoursePage />,
+        path: "/courses",
+        element: <Courses />,
+      },
+      {
+        path: "/create-new-course",
+        element: <AddNewCoursePage />,
+      },
+      {
+        path : "/course-curriculum",
+        element:<CourseCurriculum/>
+      },
+      {
+        path : "/course-landing",
+        element:<CourseLanding/>
+      },
+      {
+        path : "/course-settings",
+        element:<CourseSettings/>
       },
       {
         path: "/mentors",
