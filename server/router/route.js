@@ -1,29 +1,13 @@
 import { Router } from "express";
-import * as controller from "../controller/controller.js";
-import Auth from "../middleware/auth.js";
-import upload from "../middleware/multer.js";
+import adminRoutes from "./adminRoutes.js";
+import mentorRoutes from "./mentorRoutes.js";
+import courseRoutes from "./courseRoutes.js";
+
 const router = Router();
 
 
-router.route("/register").post(controller.register);
-router.route("/login").post(controller.login);
-router.route("/registerMentor").post(controller.registerMentor);
-router.route("/loginMentor").post(controller.loginMentor);
-router.route("/addMentor").post(upload.single("photo"),controller.addMentor);
-router.route("/getMentors").get(Auth,controller.getMentors);
-router.route("/getMentor/:id").get(controller.getMentor)
-router.route("/deleteMentor/:id").post(Auth,controller.deleteMentor); 
-router.route("/deleteMentors").post(Auth,controller.deleteMentors)
-router.route("//deleteAdmins").post(Auth,controller.deleteAdmins)
-router.route("/blockMentor/:id").post(Auth,controller.blockMentor)
-router.route("/blockAdmin/:id").post(Auth,controller.blockAdmin)
-router.route("/unblockMentor/:id").post(Auth,controller.unblockMentor)
-router.route("/unblockAdmin/:id").post(Auth,controller.unblockAdmin)
-router.route("/updateAdmin/:id").post(Auth,upload.single("photo"),controller.updateMentor); 
-router.route("/updateMentorStatus/:id").post(controller.updateMentorStatus);
-router.route("/pendingMentorsCount").get(controller.pendingMentorsCount);
-router.route("/addAdmin").post(upload.single("photo"),controller.addAdmin);
-router.route("/getAdmins").get(Auth,controller.getAdmins);
-router.route("/deleteAdmin/:id").post(Auth,controller.deleteAdmin); 
-router.route("/updateAdmin/:id").post(Auth,upload.single("photo"),controller.updateAdmin); 
+router.use("/admin", adminRoutes);  
+router.use("/mentor", mentorRoutes); 
+router.use("/course", courseRoutes); 
+
 export default router;

@@ -99,7 +99,7 @@ const AddMentor = () => {
         formData.append('password', mentorData.password);
         formData.append('photo', mentorData.photo);
 
-        const response = await axios.post('http://localhost:5001/api/addmentor', formData, {
+        const response = await axios.post('http://localhost:5001/api/mentor/addmentor', formData, {
         
           
           headers: {

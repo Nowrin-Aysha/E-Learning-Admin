@@ -73,10 +73,10 @@ function CourseLanding() {
             fullWidth
             sx={{
               marginTop: 3,
-              backgroundColor: "#001F3F", // Navy blue color
+              backgroundColor: "#001F3F", 
               color: "white",
               "&:hover": {
-                backgroundColor: "#001A36", // Darker navy blue
+                backgroundColor: "#001A36", 
               },
             }}
             onClick={handleSubmit}

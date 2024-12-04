@@ -23,7 +23,7 @@ const SidebarNavbar = ({ superAdmin, mentor, user, count, showProfileDropdown })
   };
 
  const navigate = useNavigate();
- 
+
   return (
     <>
       
@@ -60,7 +60,7 @@ const SidebarNavbar = ({ superAdmin, mentor, user, count, showProfileDropdown })
           <li className="nav-item">
             <Link className="nav-link text-white" to="/students">
               <div className="sidebar-option">
-                <i className="bi bi-person-fill"></i> Student Details
+                <i className="bi bi-person-fill"></i> Student Management
               </div>
             </Link>
           </li>

@@ -96,7 +96,7 @@ const AddAdmin = () => {
 
       try {
         setLoading(true);
-        const response = await axios.post('http://localhost:5001/api/addadmin', formData, {
+        const response = await axios.post('http://localhost:5001/api/admin/addadmin', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

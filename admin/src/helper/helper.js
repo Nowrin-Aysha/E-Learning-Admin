@@ -4,7 +4,7 @@ axios.defaults.baseURL = "http://localhost:5001";
 
 export async function registerUser(credential) {
   try {
-    const response = await axios.post("/api/register", credential);
+    const response = await axios.post("/api/admin/register", credential);
     return response.data;
   } catch (error) {
     console.log('Error during registration:', error);
@@ -20,7 +20,7 @@ export async function registerUser(credential) {
 
 export async function loginUser(credentials) {
   try {
-    const response = await axios.post('/api/login', credentials);
+    const response = await axios.post('/api/admin/login', credentials);
 
     await localStorage.setItem("token", response.data.token);
     await localStorage.setItem("data", JSON.stringify(response.data.data));
@@ -33,7 +33,7 @@ export async function loginUser(credentials) {
 
 export async function loginMentor(credentials) {
   try {
-    const response = await axios.post('/api/loginMentor', credentials);
+    const response = await axios.post('/api/mentor/loginMentor', credentials);
 
     await localStorage.setItem("token", response.data.token);
     await localStorage.setItem("data", JSON.stringify(response.data.data));
@@ -46,7 +46,7 @@ export async function loginMentor(credentials) {
 
 export async function registerMentor(credential) {
   try {
-    const response = await axios.post("/api/registerMentor", credential);
+    const response = await axios.post("/api/mentor/registerMentor", credential);
     return response.data;
   } catch (error) {
     console.log('Error during registration:', error);
@@ -64,7 +64,7 @@ export async function addMentor(mentorData) {
   console.log("Attempting to add mentor with the following data:", mentorData);
 
   try {
-    const response = await axios.post('/api/mentors', mentorData);
+    const response = await axios.post('/api/mentor/mentors', mentorData);
     console.log("Response received from server:", response);
 
     return response.data;
@@ -83,7 +83,7 @@ export async function addMentor(mentorData) {
 
 export async function addAdmin(adminData) {
   try {
-    const response = await axios.post('/api/admins', adminData);
+    const response = await axios.post('/api/admin/admins', adminData);
     return response.data;
   } catch (error) {
     console.log('Error during adding admin:', error);
@@ -97,7 +97,7 @@ export async function addAdmin(adminData) {
 
 export async function getAdmins() {
   try {
-    const response = await axios.get('/api/admins');
+    const response = await axios.get('/api/admin/admins');
     return response.data;
   } catch (error) {
     console.log('Error fetching admins:', error);
@@ -111,7 +111,7 @@ export async function getAdmins() {
 
 export async function getMentors() {
   try {
-    const response = await axios.get('/api/mentors');
+    const response = await axios.get('/api/mentor/mentors');
     return response.data;
   } catch (error) {
     console.log('Error fetching mentors:', error);

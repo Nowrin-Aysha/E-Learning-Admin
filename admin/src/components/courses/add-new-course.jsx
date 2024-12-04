@@ -21,7 +21,7 @@ const courseCurriculumInitialFormData = [
 ];
 
 function AddNewCoursePage() {
-  const [activeTab, setActiveTab] = useState(0); // State to track the active tab
+  const [activeTab, setActiveTab] = useState(0); 
   const [courseLandingFormData, setCourseLandingFormData] = useState(courseLandingInitialFormData);
   const [courseCurriculumFormData, setCourseCurriculumFormData] = useState(courseCurriculumInitialFormData);
   const [currentEditedCourseId, setCurrentEditedCourseId] = useState(null);
@@ -35,7 +35,7 @@ function AddNewCoursePage() {
   }, [params?.courseId]);
 
   const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue); // Update the active tab
+    setActiveTab(newValue); 
   };
 
   return (
@@ -51,10 +51,10 @@ function AddNewCoursePage() {
           disabled={false} 
           onClick={() => console.log("Submit clicked!")}
           sx={{               marginTop: 3,
-            backgroundColor: "#001F3F", // Navy blue color
+            backgroundColor: "#001F3F", 
             color: "white",
             "&:hover": {
-              backgroundColor: "#001A36", // Darker navy blue
+              backgroundColor: "#001A36", 
             },}}
         >
           Submit
@@ -65,7 +65,7 @@ function AddNewCoursePage() {
         <CardContent>
           <Tabs
             value={activeTab}
-            onChange={handleTabChange} // Use handleTabChange to update the active tab
+            onChange={handleTabChange}
             indicatorColor="primary"
             textColor="primary"
             variant="fullWidth"

@@ -56,7 +56,7 @@ if(data){
     const token = localStorage.getItem("token");
     const fetchData = async () => {
       const response = await axios.get(
-        "http://localhost:5001/api/pendingMentorsCount",
+        "http://localhost:5001/api/mentor/pendingMentorsCount",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -158,7 +158,7 @@ if(data){
             <li className="nav-item">
               <Link className="nav-link text-white" to="/students">
                 <div className="sidebar-option">
-                  <i className="bi bi-person-fill"></i> Student Details
+                  <i className="bi bi-person-fill"></i> Student Management
                 </div>
               </Link>
             </li>

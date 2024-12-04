@@ -24,7 +24,7 @@ function CourseSettings() {
 
       try {
         setMediaUploadProgress(true);
-        // Replace the commented line with your service logic
+       
         const response = await mediaUploadService(
           imageFormData,
           setMediaUploadProgressPercentage

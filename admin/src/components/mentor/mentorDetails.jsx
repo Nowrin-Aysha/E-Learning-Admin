@@ -15,11 +15,11 @@ const MentorDetailsPage = () => {
     const fetchMentorDetails = async () => {
       try {
         
-        const mentorResponse = await axios.get(`http://localhost:5001/api/getMentor/${mentorId}`);
+        const mentorResponse = await axios.get(`http://localhost:5001/api/mentor/getMentor/${mentorId}`);
         setMentor(mentorResponse.data);
 
       
-        const coursesResponse = await axios.get(`http://localhost:5001/api/getCoursesByMentor/${mentorId}`);
+        const coursesResponse = await axios.get(`http://localhost:5001/api/mentor/getCoursesByMentor/${mentorId}`);
         setCourses(coursesResponse.data);
       } catch (error) {
         console.error('Error fetching mentor or courses details:', error);
@@ -44,7 +44,7 @@ const MentorDetailsPage = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await axios.delete(`http://localhost:5001/api/deleteMentor/${mentorId}`, {
+          const response = await axios.delete(`http://localhost:5001/api/mentor/deleteMentor/${mentorId}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             }
@@ -77,7 +77,7 @@ const MentorDetailsPage = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await axios.delete(`http://localhost:5001/api/deleteCourse/${courseId}`, {
+          const response = await axios.delete(`http://localhost:5001/api/course/deleteCourse/${courseId}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             }

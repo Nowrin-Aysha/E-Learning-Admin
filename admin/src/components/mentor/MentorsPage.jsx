@@ -26,7 +26,7 @@ const MentorsPage = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const fetchData = async () => {
-      const response = await axios.get("http://localhost:5001/api/getMentors", {
+      const response = await axios.get("http://localhost:5001/api/mentor/getMentors", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -77,7 +77,7 @@ const MentorsPage = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         const response = await axios.post(
-          `http://localhost:5001/api/deleteMentor/${mentorId}`,
+          `http://localhost:5001/api/mentor/deleteMentor/${mentorId}`,
           {},
           {
             headers: {
@@ -107,7 +107,7 @@ const MentorsPage = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         const response = await axios.post(
-          `http://localhost:5001/api/updateMentorStatus/${mentorId}`,
+          `http://localhost:5001/api/mentor/updateMentorStatus/${mentorId}`,
           { status: "1" },
           {
             headers: {
@@ -137,7 +137,7 @@ const MentorsPage = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         const response = await axios.post(
-          `http://localhost:5001/api/updateMentorStatus/${mentorId}`,
+          `http://localhost:5001/api/mentor/updateMentorStatus/${mentorId}`,
           { status: "2" },
           {
             headers: {
@@ -197,7 +197,7 @@ const MentorsPage = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5001/api/updatementor/${selectedMentor._id}`,
+        `http://localhost:5001/api/mentor/updatementor/${selectedMentor._id}`,
         formData,
         {
           headers: {
@@ -274,7 +274,7 @@ const MentorsPage = () => {
   const handleBlockMentor = async (mentorId) => {
     const token = localStorage.getItem("token");
     const response = await axios.post(
-      `http://localhost:5001/api/blockMentor/${mentorId}`,
+      `http://localhost:5001/api/mentor/blockMentor/${mentorId}`,
       { isBlocked: true },
       {
         headers: {
@@ -291,7 +291,7 @@ const MentorsPage = () => {
   const handleUnblockMentor = async (mentorId) => {
     const token = localStorage.getItem("token");
     const response = await axios.post(
-      `http://localhost:5001/api/unblockMentor/${mentorId}`,
+      `http://localhost:5001/api/mentor/unblockMentor/${mentorId}`,
       { isBlocked: false },
       {
         headers: {
@@ -345,7 +345,7 @@ const MentorsPage = () => {
 
       try {
         const response = await axios.post(
-          `http://localhost:5001/api/deleteMentors`,
+          `http://localhost:5001/api/mentor/deleteMentors`,
           { mentorIds: selectedMentors },
           {
             headers: {

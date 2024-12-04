@@ -50,7 +50,7 @@ const AdminsPage = () => {
     });
 
     const fetchAdmins = async () => {
-      const response = await axios.get("http://localhost:5001/api/getAdmins", {
+      const response = await axios.get("http://localhost:5001/api/admin/getAdmins", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -88,7 +88,7 @@ const AdminsPage = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         const response = await axios.post(
-          `http://localhost:5001/api/deleteAdmin/${adminId}`,
+          `http://localhost:5001/api/admin/deleteAdmin/${adminId}`,
           {},
           {
             headers: {
@@ -120,7 +120,7 @@ const AdminsPage = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:5001/api/updateAdmin/${selectedAdmin._id}`,
+        `http://localhost:5001/api/admin/updateAdmin/${selectedAdmin._id}`,
         formData,
         {
           headers: {
@@ -174,7 +174,7 @@ const AdminsPage = () => {
   const handleBlockAdmin = async (adminId) => {
     const token = localStorage.getItem("token");
     const response = await axios.post(
-      `http://localhost:5001/api/blockAdmin/${adminId}`,
+      `http://localhost:5001/api/admin/blockAdmin/${adminId}`,
       { isBlocked: true },
       {
         headers: {
@@ -191,7 +191,7 @@ const AdminsPage = () => {
   const handleUnblockAdmin = async (adminId) => {
     const token = localStorage.getItem("token");
     const response = await axios.post(
-      `http://localhost:5001/api/unblockAdmin/${adminId}`,
+      `http://localhost:5001/api/admin/unblockAdmin/${adminId}`,
       { isBlocked: false },
       {
         headers: {
@@ -245,7 +245,7 @@ const AdminsPage = () => {
 
       try {
         const response = await axios.post(
-          `http://localhost:5001/api/deleteAdmins`,
+          `http://localhost:5001/api/admin/deleteAdmins`,
           { adminIds: selectedAdmins },
           {
             headers: {
