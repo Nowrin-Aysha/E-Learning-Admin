@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import {
   Card,
   CardContent,
@@ -9,20 +9,13 @@ import {
   Grid,
   Box,
 } from "@mui/material";
-
-const courseLandingPageFormControls = [
-  { id: "title", label: "Course Title", type: "text" },
-  { id: "subtitle", label: "Subtitle", type: "text" },
-  { id: "description", label: "Description", type: "text" },
-];
+import { courseLandingPageFormControls } from "../config";  // Assuming the controls are imported correctly
+import { InstructorContext } from "../context";  // Adjust the import based on your actual context path
 
 function CourseLanding() {
-  const [courseLandingFormData, setCourseLandingFormData] = useState({
-    title: "",
-    subtitle: "",
-    description: "",
-  });
+  const { courseLandingFormData, setCourseLandingFormData } = useContext(InstructorContext);
 
+  // Handle input changes
   const handleInputChange = (id, value) => {
     setCourseLandingFormData((prev) => ({
       ...prev,
@@ -30,8 +23,10 @@ function CourseLanding() {
     }));
   };
 
+  // Handle form submission
   const handleSubmit = () => {
     console.log("Submitted Data:", courseLandingFormData);
+    // You can implement further submission logic here (API call, etc.)
   };
 
   return (
@@ -73,10 +68,10 @@ function CourseLanding() {
             fullWidth
             sx={{
               marginTop: 3,
-              backgroundColor: "#001F3F", 
+              backgroundColor: "#001F3F",
               color: "white",
               "&:hover": {
-                backgroundColor: "#001A36", 
+                backgroundColor: "#001A36",
               },
             }}
             onClick={handleSubmit}

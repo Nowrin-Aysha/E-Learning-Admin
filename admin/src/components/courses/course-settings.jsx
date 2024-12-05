@@ -1,20 +1,15 @@
-import React, { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-  Box,
-  Input,
-} from "@mui/material";
-import MediaProgressbar from "../courses/MediaProgressbar";
-// import { mediaUploadService } from "@/services";
+import React, { useState, useContext } from "react";
+import { Card, CardContent, CardHeader, Typography, Box, Input } from "@mui/material";
+import MediaProgressbar from "../courses/MediaProgressbar"; // Assuming the path is correct
+import { InstructorContext } from "../context"; // Adjust the path to your context
+import { mediaUploadService } from "../../helper/helper"; // Adjust the path to your helper file
 
 function CourseSettings() {
-  const [courseLandingFormData, setCourseLandingFormData] = useState({});
+  const { courseLandingFormData, setCourseLandingFormData } = useContext(InstructorContext);
   const [mediaUploadProgress, setMediaUploadProgress] = useState(false);
   const [mediaUploadProgressPercentage, setMediaUploadProgressPercentage] = useState(0);
 
+  // Handle image upload
   async function handleImageUploadChange(event) {
     const selectedImage = event.target.files[0];
 
@@ -24,15 +19,13 @@ function CourseSettings() {
 
       try {
         setMediaUploadProgress(true);
-       
-        const response = await mediaUploadService(
-          imageFormData,
-          setMediaUploadProgressPercentage
-        );
+
+        const response = await mediaUploadService(imageFormData, setMediaUploadProgressPercentage);
+
         if (response.success) {
           setCourseLandingFormData((prev) => ({
             ...prev,
-            image: response.data.url,
+            image: response.data.url, // Assuming the response contains the image URL
           }));
         }
       } catch (e) {

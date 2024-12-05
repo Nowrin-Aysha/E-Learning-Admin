@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Button,
   Card,
@@ -12,15 +12,31 @@ import {
   Grid,
   LinearProgress,
 } from "@mui/material";
-import { Upload, Delete as DeleteIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon, Upload } from "@mui/icons-material";
 
 function CourseCurriculum() {
   const [courseCurriculumFormData, setCourseCurriculumFormData] = useState([]);
   const [mediaUploadProgress, setMediaUploadProgress] = useState(false);
-  const [mediaUploadProgressPercentage, setMediaUploadProgressPercentage] =
-    useState(0);
-
+  const [mediaUploadProgressPercentage, setMediaUploadProgressPercentage] = useState(0);
   const bulkUploadInputRef = useRef(null);
+
+  // Load data from localStorage when component mounts
+  useEffect(() => {
+    const storedData = localStorage.getItem("courseCurriculumFormData");
+    if (storedData) {
+      setCourseCurriculumFormData(JSON.parse(storedData));
+    }
+  }, []);
+
+  // Save data to localStorage whenever the form data changes
+  useEffect(() => {
+    if (courseCurriculumFormData.length > 0) {
+      localStorage.setItem(
+        "courseCurriculumFormData",
+        JSON.stringify(courseCurriculumFormData)
+      );
+    }
+  }, [courseCurriculumFormData]);
 
   const handleNewLecture = () => {
     setCourseCurriculumFormData([
@@ -31,24 +47,14 @@ function CourseCurriculum() {
 
   const handleCourseTitleChange = (event, index) => {
     const updatedData = [...courseCurriculumFormData];
-    updatedData[index] = {
-      ...updatedData[index],
-      title: event.target.value,
-    };
+    updatedData[index] = { ...updatedData[index], title: event.target.value };
     setCourseCurriculumFormData(updatedData);
   };
 
   const handleFreePreviewChange = (event, index) => {
     const updatedData = [...courseCurriculumFormData];
-    updatedData[index] = {
-      ...updatedData[index],
-      freePreview: event.target.checked,
-    };
+    updatedData[index] = { ...updatedData[index], freePreview: event.target.checked };
     setCourseCurriculumFormData(updatedData);
-  };
-
-  const handleOpenBulkUploadDialog = () => {
-    bulkUploadInputRef.current?.click();
   };
 
   const handleSingleLectureUpload = async (event, index) => {
@@ -57,11 +63,13 @@ function CourseCurriculum() {
 
     setMediaUploadProgress(true);
     setMediaUploadProgressPercentage(50);
+
     setTimeout(() => {
       const updatedData = [...courseCurriculumFormData];
       updatedData[index] = {
         ...updatedData[index],
         videoUrl: URL.createObjectURL(file),
+        public_id: file.name,
       };
       setCourseCurriculumFormData(updatedData);
       setMediaUploadProgress(false);
@@ -71,18 +79,40 @@ function CourseCurriculum() {
 
   const handleReplaceVideo = (index) => {
     const updatedData = [...courseCurriculumFormData];
-    updatedData[index] = {
-      ...updatedData[index],
-      videoUrl: "",
-    };
+    updatedData[index] = { ...updatedData[index], videoUrl: "", public_id: "" };
     setCourseCurriculumFormData(updatedData);
   };
 
   const handleDeleteLecture = (index) => {
-    const updatedData = courseCurriculumFormData.filter(
-      (_, i) => i !== index
-    );
+    const updatedData = courseCurriculumFormData.filter((_, i) => i !== index);
     setCourseCurriculumFormData(updatedData);
+  };
+
+  const handleBulkUpload = async (event) => {
+    const files = event.target.files;
+    if (!files.length) return;
+
+    setMediaUploadProgress(true);
+    setMediaUploadProgressPercentage(0);
+
+    const updatedData = [...courseCurriculumFormData];
+    let progress = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      updatedData[i] = updatedData[i] || { title: "", freePreview: false, videoUrl: "", public_id: "" };
+      updatedData[i].videoUrl = URL.createObjectURL(file);
+      updatedData[i].public_id = file.name;
+
+      progress = Math.round(((i + 1) / files.length) * 100);
+      setMediaUploadProgressPercentage(progress);
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+
+    setCourseCurriculumFormData(updatedData);
+    setMediaUploadProgress(false);
+    setMediaUploadProgressPercentage(0);
   };
 
   const isCourseCurriculumFormDataValid = () => {
@@ -105,11 +135,7 @@ function CourseCurriculum() {
     >
       <Card sx={{ padding: 3, width: "90%", maxWidth: "1000px", boxShadow: 4 }}>
         <CardHeader
-          title={
-            <Typography variant="h5" fontWeight="bold">
-              Create Course Curriculum
-            </Typography>
-          }
+          title={<Typography variant="h5" fontWeight="bold">Create Course Curriculum</Typography>}
           action={
             <Box>
               <input
@@ -118,12 +144,12 @@ function CourseCurriculum() {
                 accept="video/*"
                 multiple
                 style={{ display: "none" }}
-                onChange={handleOpenBulkUploadDialog}
+                onChange={handleBulkUpload}
               />
               <Button
                 variant="outlined"
                 startIcon={<Upload />}
-                onClick={handleOpenBulkUploadDialog}
+                onClick={() => bulkUploadInputRef.current?.click()}
                 sx={{
                   borderColor: "navy",
                   color: "navy",
@@ -205,6 +231,7 @@ function CourseCurriculum() {
                           borderColor: "navy",
                           color: "navy",
                           "&:hover": { backgroundColor: "rgba(0, 0, 128, 0.1)", borderColor: "#003366" },
+                           fontSize: "0.75rem",
                         }}
                         onClick={() => handleReplaceVideo(index)}
                       >
@@ -216,6 +243,7 @@ function CourseCurriculum() {
                           backgroundColor: "navy",
                           color: "white",
                           "&:hover": { backgroundColor: "#003366" },
+                           fontSize: "0.75rem",
                         }}
                         startIcon={<DeleteIcon />}
                         onClick={() => handleDeleteLecture(index)}

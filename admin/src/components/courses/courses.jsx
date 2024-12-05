@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   Button,
   Card,
@@ -17,11 +17,15 @@ import {
 import { Edit, Delete } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
+import { courseCurriculumInitialFormData, courseLandingInitialFormData } from "../config"
+import { InstructorContext } from "../context";
+
 function Courses({ listOfCourses }) {
   const navigate = useNavigate();
+  const { setCurrentEditedCourseId, setCourseLandingFormData, setCourseCurriculumFormData } = useContext(InstructorContext);
 
   return (
-    <div style={{ padding: "10px",  height: "100vh", width: "100vw" , backgroundColor: "#f4f4f4" }}>
+    <div style={{ padding: "10px", height: "100vh", width: "100vw", backgroundColor: "#f4f4f4" }}>
       <Card style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
         <CardHeader
           title={
@@ -39,6 +43,9 @@ function Courses({ listOfCourses }) {
                 padding: "10px 20px",
               }}
               onClick={() => {
+                setCurrentEditedCourseId(null);
+                setCourseLandingFormData(courseLandingInitialFormData);
+                setCourseCurriculumFormData(courseCurriculumInitialFormData);
                 navigate("/create-new-course");
               }}
             >
